@@ -8,9 +8,10 @@
   let native = false, aliran = null, putar = null, detektor = null;
   const adaNative = 'BarcodeDetector' in window;
   function detektorNative() { return detektor = detektor || new BarcodeDetector({ formats: ['qr_code'] }); }
-  async function mulaiNative() {
+  async function mulaiNative(id, kams) {
     detektorNative();
-    aliran = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    aliran = await navigator.mediaDevices.getUserMedia({ video: id ? { deviceId: { exact: id } } : { facingMode: { ideal: 'environment' } } });
+    if (kams) { const lengkap = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); const aktif = aliran.getVideoTracks()[0].getSettings().deviceId; isiPilihan(lengkap, aktif); }
     const v = document.createElement('video'); v.setAttribute('playsinline', ''); v.muted = true; v.srcObject = aliran; v.style.width = '100%';
     $('cekReader').innerHTML = ''; $('cekReader').appendChild(v); await v.play();
     native = true; jalan = true; $('cekMulai').innerHTML = '<i class="bi bi-stop-circle me-1"></i>Matikan kamera';
@@ -58,24 +59,67 @@
     hasil.innerHTML = ''; if (!scan) berhenti();
   });
 
-  $('cekMulai').onclick = async () => {
-    if (jalan) return berhenti();
+  // ---------- kamera ----------
+  function pesanKamera(e) {
+    const n = (e && (e.name || '')) + ' ' + String(e && e.message || e || '');
+    if (/NotFound|DevicesNotFound|OverconstrainedError|Requested device not found/i.test(n)) return 'Tidak ada kamera yang terdeteksi di perangkat ini. Pakai HP untuk memindai, pilih foto kode QR, atau isi nomor surat secara manual.';
+    if (/NotAllowed|Permission|denied/i.test(n)) return 'Izin kamera ditolak. Klik ikon gembok di sebelah alamat situs, izinkan Kamera, lalu coba lagi.';
+    if (/NotReadable|TrackStart|Could not start/i.test(n)) return 'Kamera sedang dipakai aplikasi lain (misalnya Zoom atau WhatsApp). Tutup aplikasi itu, lalu coba lagi.';
+    if (/Secure|https/i.test(n)) return 'Kamera hanya bisa dipakai jika website dibuka lewat https atau localhost.';
+    return 'Kamera tidak bisa dibuka (' + String(e && e.message || e) + ').';
+  }
+  function tampilGagalKamera(e) {
+    hasil.innerHTML = `<div class="alert alert-warning small mb-0">${esc(pesanKamera(e))}
+      <div class="d-flex flex-wrap gap-2 mt-2"><button type="button" class="btn btn-sm btn-light" data-aksi="foto"><i class="bi bi-image me-1"></i>Pilih foto QR</button>
+      <button type="button" class="btn btn-sm btn-light" data-aksi="manual"><i class="bi bi-keyboard me-1"></i>Input manual</button></div></div>`;
+  }
+  hasil.addEventListener('click', e => {
+    const b = e.target.closest('[data-aksi]'); if (!b) return;
+    if (b.dataset.aksi === 'foto') $('cekFoto').click();
+    if (b.dataset.aksi === 'manual') document.querySelector('[data-cek="manual"]').click();
+  });
+  async function daftarKamera() {
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw { name: 'SecureContext', message: 'https' };
+    const semua = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    if (!semua.length) throw { name: 'NotFoundError', message: 'Requested device not found' };
+    return semua;
+  }
+  function pilihBelakang(kams) {
+    const b = kams.find(k => /back|rear|belakang|environment|utama/i.test(k.label || ''));
+    return (b || kams[kams.length - 1]).id || (b || kams[kams.length - 1]).deviceId;
+  }
+  function isiPilihan(kams, aktif) {
+    const sel = $('cekKamera'); if (!sel) return;
+    sel.innerHTML = kams.map((k, i) => `<option value="${esc(k.id || k.deviceId)}">${esc(k.label || 'Kamera ' + (i + 1))}</option>`).join('');
+    sel.value = aktif; sel.classList.toggle('d-none', kams.length < 2);
+  }
+  async function nyalakan(idPilihan) {
     hasil.innerHTML = '';
+    const kams = await daftarKamera();
     let pustaka = true;
     try { await muatPustaka(); } catch (e) { pustaka = false; }
     if (!pustaka) {
-      if (!adaNative) { hasil.innerHTML = '<div class="alert alert-warning small mb-0">Pemindai belum tersedia tanpa internet di browser ini. Gunakan tab Input manual.</div>'; return; }
-      try { await mulaiNative(); } catch (e) { hasil.innerHTML = `<div class="alert alert-warning small mb-0">Kamera tidak bisa dibuka (${esc(e.message || e)}). Izinkan akses kamera, buka lewat https/localhost, atau gunakan input manual.</div>`; }
-      return;
+      if (!adaNative) { hasil.innerHTML = '<div class="alert alert-warning small mb-0">Pemindai kamera belum tersedia tanpa internet di browser ini. Gunakan Pilih foto QR atau Input manual.</div>'; return; }
+      return mulaiNative(idPilihan || null, kams);
     }
-    try {
-      $('cekReader').innerHTML = '';
-      scanner = scanner || new Html5Qrcode('cekReader');
-      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } }, async teks => { await berhenti(); cek({ kode: teks }); });
-      jalan = true; $('cekMulai').innerHTML = '<i class="bi bi-stop-circle me-1"></i>Matikan kamera';
-    } catch (e) {
-      hasil.innerHTML = `<div class="alert alert-warning small mb-0">Kamera tidak bisa dibuka (${esc(e.message || e)}). Izinkan akses kamera, buka lewat https, atau gunakan foto/input manual.</div>`;
-    }
+    // html5-qrcode: daftar kamera lengkap dengan label (meminta izin sekali)
+    let daftar = [];
+    try { daftar = await Html5Qrcode.getCameras(); } catch (e) { throw e; }
+    if (!daftar.length) throw { name: 'NotFoundError', message: 'Requested device not found' };
+    const id = idPilihan || pilihBelakang(daftar);
+    isiPilihan(daftar, id);
+    $('cekReader').innerHTML = '';
+    scanner = scanner || new Html5Qrcode('cekReader');
+    await scanner.start(id, { fps: 10, qrbox: { width: 220, height: 220 } }, async teks => { await berhenti(); cek({ kode: teks }); });
+    jalan = true; $('cekMulai').innerHTML = '<i class="bi bi-stop-circle me-1"></i>Matikan kamera';
+  }
+  $('cekMulai').onclick = async () => {
+    if (jalan) return berhenti();
+    try { await nyalakan(); } catch (e) { await berhenti(); tampilGagalKamera(e); }
+  };
+  if ($('cekKamera')) $('cekKamera').onchange = async e => {
+    await berhenti();
+    try { await nyalakan(e.target.value); } catch (err) { await berhenti(); tampilGagalKamera(err); }
   };
   $('cekFoto').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;

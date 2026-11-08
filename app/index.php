@@ -83,8 +83,9 @@ $logo = foto(cfg('logo')); $heroImg = foto(cfg('hero_gambar')); ?>
     <div id="cekScan">
       <div id="cekReader" class="cek-reader"><div class="text-center text-secondary small p-4"><i class="bi bi-qr-code fs-1 d-block mb-2"></i>Arahkan kamera ke kode QR di bagian tanda tangan surat.</div></div>
       <div class="d-flex gap-2 mt-2"><button class="btn btn-primary flex-grow-1" id="cekMulai"><i class="bi bi-camera-video me-1"></i>Nyalakan kamera</button>
-        <label class="btn btn-light" title="Pindai dari foto"><i class="bi bi-image"></i><input type="file" accept="image/*" id="cekFoto" hidden></label></div>
-      <div class="form-text">Kamera hanya berfungsi di alamat https atau localhost. Bisa juga memilih foto kode QR.</div>
+        <label class="btn btn-light" title="Pindai dari foto"><i class="bi bi-image me-1"></i>Foto<input type="file" accept="image/*" id="cekFoto" hidden></label></div>
+      <select class="form-select form-select-sm mt-2 d-none" id="cekKamera" aria-label="Pilih kamera"></select>
+      <div class="form-text">Kamera hanya berfungsi di alamat https atau localhost. Tidak ada kamera? Pilih foto kode QR atau pakai Input manual.</div>
     </div>
     <form id="cekManual" class="d-none">
       <label class="form-label">Nomor surat</label><input class="form-control mb-2" id="cekNomor" placeholder="mis. 001/RT.05/RW.02/XI/2026" required>
