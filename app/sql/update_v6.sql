@@ -1,0 +1,41 @@
+USE db_rt;
+-- Jalankan SEKALI pada database versi 5. Installer menjalankannya otomatis.
+CREATE TABLE IF NOT EXISTS notifikasi (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  tipe VARCHAR(20) NOT NULL DEFAULT 'info',
+  judul VARCHAR(150) NOT NULL,
+  isi VARCHAR(300),
+  url VARCHAR(150),
+  dibaca TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (user_id, dibaca),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS darurat (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  jenis VARCHAR(40) NOT NULL,
+  pesan VARCHAR(300),
+  lokasi VARCHAR(150),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  selesai_at DATETIME NULL,
+  selesai_oleh VARCHAR(100) NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS chat (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  kunci VARCHAR(40) NOT NULL,
+  dari INT NOT NULL,
+  isi TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (kunci, id),
+  FOREIGN KEY (dari) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS chat_baca (
+  user_id INT NOT NULL,
+  kunci VARCHAR(40) NOT NULL,
+  last_id INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, kunci),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

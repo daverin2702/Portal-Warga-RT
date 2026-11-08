@@ -1,0 +1,6 @@
+<FilesMatch "\.(sql|lock|txt|xlsx~)$">
+  Require all denied
+</FilesMatch>
+<Files "config.local.php">
+  Require all denied
+</Files>

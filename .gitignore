@@ -1,0 +1,7 @@
+app/config.local.php
+app/install.lock
+app/uploads/*
+!app/uploads/.htaccess
+!app/uploads/bukti/
+app/uploads/bukti/*
+!app/uploads/bukti/.htaccess

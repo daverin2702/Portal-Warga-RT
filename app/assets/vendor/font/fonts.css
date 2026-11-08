@@ -1,0 +1,4 @@
+/* Font lokal (variabel, satu berkas per keluarga). Lisensi: SIL Open Font License, lihat OFL.txt di tiap folder. */
+@font-face{font-family:"Plus Jakarta Sans";src:url("Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf") format("truetype");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Inter";src:url("Inter/Inter-VariableFont_opsz,wght.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Fraunces";src:url("Fraunces/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf") format("truetype");font-weight:100 900;font-style:normal;font-display:swap}

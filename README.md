@@ -188,7 +188,7 @@ websitert/
     ├── aset.php         # pemuat aset lokal/CDN (mode offline)
     ├── api.php          # notifikasi, darurat, chat (JSON)
     ├── cek.php          # cek keaslian surat (publik)
-    ├── assets/          # CSS, JS, dan aset offline (vendor/)
+    ├── assets/          # CSS, JS, dan aset offline (vendor/: Bootstrap, ikon, font, QR)
     ├── sql/             # pembaruan database antarversi
     └── uploads/         # logo, foto, bukti bayar (terlindungi)
 ```
@@ -201,7 +201,7 @@ websitert/
 |---|---|
 | Server | PHP murni (tanpa framework), PDO, MySQL/MariaDB |
 | Tampilan | Bootstrap 5.3.8, Bootstrap Icons 1.13.2, Plus Jakarta Sans / Inter / Fraunces |
-| Grafik & QR | Chart.js, QRCode.js, html5-qrcode |
+| Grafik & QR | Chart.js, pembuat QR Kazuhiko Arase (offline, MIT), html5-qrcode |
 | Pengembangan | GitHub Codespaces (Docker + MariaDB) |
 
 ## 🔐 Keamanan
